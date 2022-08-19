@@ -94,11 +94,11 @@ router.post('/signup',(req,res)=>{
     console.log(filename)
     Users.findById(user_id)
     .then(async (user)=>{
-      fs.unlink('public/user_images/'+user.image,function(result){
+      await fs.unlink('public/user_images/'+user.image,function(result){
        console.log(result)
       })
   
-      file.mv('public/user_images/'+filename, function(err){
+      await file.mv('public/user_images/'+filename, function(err){
           if(err){
               res.send(err)
           }
@@ -123,11 +123,12 @@ router.post('/signup',(req,res)=>{
 
 
   router.get('/getUserImage',(req,res)=>{
-    const user_id = req.query.user_id
-    Users.findOne({"user_id":user_id})
+    const user_id = mongoose.Types.ObjectId(req.query.user_id)
+    Users.findOne({"_id":user_id})
     .then(userImage=>{
+      console.log(userImage)
         res.json({
-            "userImage":userImage
+            "userImage":userImage.image
         })
     })
 })
@@ -189,7 +190,8 @@ const stripe = new Stripe('sk_test_51JvHo6IFWqjmRPIaYdR14LZYgxXIqxGjLJvcVtPj44DA
 });
 
 router.post('/create-payment-intent', async (req, res) => {
-  const amount = req.query.amount
+  const amount = req.body.amount
+  console.log(amount)
   const paymentIntent = await stripe.paymentIntents.create({
     amount: amount,
     currency: 'usd',

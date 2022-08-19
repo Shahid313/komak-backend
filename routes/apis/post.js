@@ -5,7 +5,9 @@ const router = require('express').Router()
 let Post = require('../../models/Post')
 
 router.post('/add_post',(req,res)=>{
-    const {leftOverName,postLocation,postDescription,user_id,isApproved} = req.body
+    const {leftOverName,latitude,postLocation,longitude,postDescription,user_id,isApproved} = req.body
+    console.log("this is the latitude")
+    console.log(latitude)
     console.log(user_id)
     const file = req.files.postImage;
     console.log(file)
@@ -19,11 +21,15 @@ router.post('/add_post',(req,res)=>{
 
     const post = new Post({
         "post_name":leftOverName,
-        "post_location":postLocation,
+        "latitude":latitude,
+        "longitude":longitude,
+        "postLocation":postLocation,
         "post_description":postDescription,
         "post_image":filename,
         "user_id":user_id,
-        "isApproved":isApproved
+        "driver_id":"",
+        "isApproved":isApproved,
+        "isCompleted":false
     })
     post.save()
     return res.send({

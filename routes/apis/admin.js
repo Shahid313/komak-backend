@@ -81,5 +81,16 @@ router.get('/messages', (req,res)=>{
     })
 })
 
+//deliveries
+
+router.get('/deliveries',(req,res)=>{
+    Post.find({$and:[{"isApproved":true}, {"isCompleted":false}]})
+    .then(orders=>{
+        res.json({
+            "orders":orders
+        })
+    })
+})
+
 module.exports = router
 

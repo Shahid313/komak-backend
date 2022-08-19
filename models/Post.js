@@ -19,8 +19,20 @@ const PostSchema = new Schema({
     user_id:{
         type:String
     },
+    driver_id:{
+        type:String,
+    },
     isApproved:{
         type:Boolean
+    },
+    isCompleted:{
+        type:Boolean
+    },
+    latitude:{
+        type:String,
+    },
+    longitude:{
+        type:String,
     }
 
 
