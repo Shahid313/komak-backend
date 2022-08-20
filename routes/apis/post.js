@@ -23,7 +23,7 @@ router.post('/add_post',(req,res)=>{
         "post_name":leftOverName,
         "latitude":latitude,
         "longitude":longitude,
-        "postLocation":postLocation,
+        "post_location":postLocation,
         "post_description":postDescription,
         "post_image":filename,
         "user_id":user_id,
