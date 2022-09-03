@@ -33,8 +33,11 @@ const PostSchema = new Schema({
     },
     longitude:{
         type:String,
-    }
+    },
 
+post_data:{
+    type:Date
+}
 
 
 

@@ -29,7 +29,8 @@ router.post('/add_post',(req,res)=>{
         "user_id":user_id,
         "driver_id":"",
         "isApproved":isApproved,
-        "isCompleted":false
+        "isCompleted":false,
+        "post_data":new Date()
     })
     post.save()
     return res.send({
