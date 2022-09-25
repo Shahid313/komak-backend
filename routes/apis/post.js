@@ -1,8 +1,10 @@
 const fs = require('fs')
 const router = require('express').Router()
+const mongoose = require('mongoose')
 
 
 let Post = require('../../models/Post')
+let Users = require('../../models/Users')
 
 router.post('/add_post',(req,res)=>{
     const {leftOverName,latitude,postLocation,longitude,postDescription,user_id,isApproved} = req.body
@@ -66,5 +68,21 @@ router.get('/Post_details',(req,res)=>{
         })
     })
 })
+
+
+router.get('/get_post_driver_details', (req, res) => {
+    const driver_id = mongoose.Types.ObjectId(req.query.driver_id)
+    
+    //Getting My Posts Starts
+    Users.find({'_id':driver_id}).then(driver => {
+        console.log(driver)
+        res.json({
+            'driver':driver
+        })
+    })
+   
+})
+
+
 
 module.exports = router

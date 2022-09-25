@@ -3,9 +3,145 @@ let Users = require('../../models/Users')
 const fs = require('fs')
 const Stripe = require('stripe')
 const mongoose = require('mongoose')
+var nodemailer = require('nodemailer');
+require('dotenv').config();
 
 const bcrypt = require('bcrypt');        
 const saltRounds = 10;
+
+function forgot_password_mail(email,code){
+  
+ 
+  var transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: 'shahidkahn11@gmail.com',
+      pass: 'pasfujaowkxhzgdz'
+    }
+  });
+
+
+
+  var mailOptions = {
+    from: 'shahidkahn11@gmail.com',
+    to: email,
+    subject: 'Komak Verification Code',
+    text: 'Your Verification Code is : ' + code
+  };
+
+
+  transporter.sendMail(mailOptions, function(error, info){
+    if (error) {
+     
+      console.log(error);
+    } else {
+      
+      console.log('Email sent: ' + info.response);
+    }
+  });
+}
+
+//node mailer
+
+function send_mail(email,code){
+  
+ 
+  var transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: 'shahidkahn11@gmail.com',
+      pass: 'pasfujaowkxhzgdz'
+    }
+  });
+
+
+
+  var mailOptions = {
+    from: 'shahidkahn11@gmail.com',
+    to: email,
+    subject: 'Komak Verification Code',
+    text: 'Your Verification Code is : ' + code
+  };
+
+
+  transporter.sendMail(mailOptions, function(error, info){
+    if (error) {
+     
+      console.log(error);
+    } else {
+      
+      console.log('Email sent: ' + info.response);
+    }
+  });
+}
+
+//nodemailer
+
+//send mail to driver
+
+function send_mail_to_driver(email,password){
+  
+ 
+  var transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: 'shahidkahn11@gmail.com',
+      pass: 'pasfujaowkxhzgdz'
+    }
+  });
+
+
+
+  var mailOptions = {
+    from: 'shahidkahn11@gmail.com',
+    to: email,
+    subject: 'Komak Verification',
+    text: 'Your email: ' + email+'\nYour password: '+password
+  };
+
+
+  transporter.sendMail(mailOptions, function(error, info){
+    if (error) {
+     
+      console.log(error);
+    } else {
+      
+      console.log('Email sent: ' + info.response);
+    }
+  });
+}
+
+router.get('/email_verification',(req,res)=>{
+  let email = req.query.email
+    try{
+    
+      Users.findOne({email:email})
+     .then(result=>{
+       if(result != null){
+ 
+         return res.send({
+           "msg":"User Already Exist"
+         })
+       }else{
+        var random_digits = Math.floor(1000 + Math.random() * 9000);
+        send_mail(email,random_digits)
+         
+         return res.send({
+           "code":random_digits,
+           "msg":"OTP sent"
+         })
+ 
+       }
+ 
+     })
+     
+   }
+   catch(err){
+     return res.status(422).send(err.message)
+   }
+
+
+})
 
 //signup api
 router.post('/signup',(req,res)=>{
@@ -14,7 +150,6 @@ router.post('/signup',(req,res)=>{
     let email = req.body.email
     let password = req.body.password
     let user_reg_cat = req.body.user_reg_cat
-    console.log(req.body)
     bcrypt.hash(password,saltRounds,(err,hash)=>{
       hash_password = hash
       try{
@@ -36,6 +171,9 @@ router.post('/signup',(req,res)=>{
            });
    
             user.save();
+            if(user_reg_cat == 'driver'){
+              send_mail_to_driver(email, password)
+            }
            console.log("signed Up")
            return res.send({
              "msg":"User Registered Successfully"
@@ -133,6 +271,17 @@ router.post('/signup',(req,res)=>{
     })
 })
 
+router.get('/getUserData',(req,res)=>{
+  const user_id = mongoose.Types.ObjectId(req.query.user_id)
+  Users.findOne({"_id":user_id})
+  .then(user=>{
+    console.log(user)
+      res.json({
+          "user":user
+      })
+  })
+})
+
 
 router.post('/login_for_changing_password',(req,res)=>{
   const {email,password} = req.body
@@ -200,5 +349,53 @@ router.post('/create-payment-intent', async (req, res) => {
     clientSecret: paymentIntent.client_secret,
   });
 });
+
+//forgot password
+router.get("/forgot_password",(req,res)=>{
+  var random_digits = Math.floor(1000 + Math.random() * 9000);
+  const email = req.query.email
+  Users.findOne({email:email})
+  .then(user_res=>{
+    if(user_res != null){
+      forgot_password_mail(user_res.email,random_digits)
+
+      res.send({
+        "msg":"Verification Code Sent",
+        "user_id":user_res._id,
+        "otp":random_digits
+    })
+    }else{
+      res.send({
+        "msg":"user does not exist"
+      })
+    }
+      
+  })
+})
+
+router.post("/create_new_password", async (req, res) => {
+const user_id = req.body.user_id
+let password = req.body.password
+
+bcrypt.hash(password, saltRounds, async (err, hash) => {
+  let filter = { _id: user_id };
+  let updateDoc = {
+    $set: {
+     password:hash,
+    },
+  };
+
+  await Users.updateMany(filter,updateDoc)
+  Users.findById(user_id)
+  .then(result=>{
+   
+     res.send({
+       "msg":"Password Updated"
+     })
+  })
+
+})
+
+})
 
 module.exports = router;

@@ -3,6 +3,39 @@ const router = require('express').Router()
 let AdminMessage = require('../../models/AdminMessage')
 let Post = require('../../models/Post')
 let Users = require('../../models/Users')
+var nodemailer = require('nodemailer');
+
+function make_reply(email,message){
+  
+ 
+    var transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: 'shahidkahn11@gmail.com',
+        pass: 'pasfujaowkxhzgdz'
+      }
+    });
+  
+  
+  
+    var mailOptions = {
+      from: 'shahidkahn11@gmail.com',
+      to: email,
+      subject: 'Komak Reply',
+      text: 'Hi Dear \n'+message
+    };
+  
+  
+    transporter.sendMail(mailOptions, function(error, info){
+      if (error) {
+       
+        console.log(error);
+      } else {
+        
+        console.log('Email sent: ' + info.response);
+      }
+    });
+  }
 
 router.post('/send_admin_message',(req,res)=>{
     const {sender_name,sender_email,sender_message} = req.body
@@ -71,6 +104,24 @@ router.post('/approve_post',(req,res)=>{
     })
 })
 
+router.get('/get_all_drivers',(req,res)=>{
+    Users.find({'user_reg_cat':'driver'})
+    .then(drivers=>{
+        res.json({
+            "drivers":drivers
+        })
+    })
+})
+
+router.get('/get_normal_users',(req,res)=>{
+    Users.find({'user_reg_cat':{$ne:'driver'}})
+    .then(users=>{
+        res.json({
+            "users":users
+        })
+    })
+})
+
 //message
 router.get('/messages', (req,res)=>{
     AdminMessage.find()
@@ -91,6 +142,41 @@ router.get('/deliveries',(req,res)=>{
         })
     })
 })
+
+router.post('/update_admin_name',(req,res)=>{
+    const admin_id = req.body.admin_id
+    const admin_name = req.body.admin_name
+    Users.findById(admin_id)
+    .then(async (user)=>{
+  
+        let filter = { _id: admin_id };
+        let updateDoc = {
+            $set: {
+                "name":admin_name,
+            }
+  
+        }
+  
+        await Users.updateMany(filter,updateDoc)
+  
+      return res.json({
+        "msg":"Admin name updated successfully"
+      })
+  
+    })
+  })
+
+  router.post('/reply', (req,res) => {
+    const reply = req.body.sender_message
+    const email = req.body.email
+
+    make_reply(email, reply)
+
+    return res.send({
+        "msg":"Reply Sent Successfully"
+      })
+
+  })
 
 module.exports = router
 
